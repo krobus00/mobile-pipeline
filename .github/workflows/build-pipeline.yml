@@ -55,7 +55,7 @@ jobs:
       with:
         webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
         title: New mobile app version
-        message: "**Creator:** ${{ github.event.pull_request.user.login }}\n${{steps.S3.outputs.object_location}}"
+        message: "**Creator:** ${{ github.event.pull_request.user.login }}\n${{steps.S3.outputs.object_locations}}"
         include_image: true
         avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
         username: Mobile Deployment
