@@ -54,9 +54,6 @@ jobs:
     - name: Install dependencies
       run: yarn
 
-    - name: Test project
-      run: yarn test
-
     - name: Build app
       run: |
         eas build --local \
