@@ -27,14 +27,14 @@ on:
 jobs:
   build:
     runs-on: ${{ github.event.inputs.os }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.branch }}
     strategy:
       matrix:
         node: [16.x]
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
     - name: Setup Node
       uses: actions/setup-node@v2
       with:
