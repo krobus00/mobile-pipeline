@@ -66,8 +66,8 @@ jobs:
           --profile=${{ github.event.inputs.profile }}
 
     - name: Upload to S3
-      id: S3
       uses: shallwefootball/s3-upload-action@master
+      id: S3
       with:
         aws_key_id: ${{ secrets.AWS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
@@ -79,4 +79,4 @@ jobs:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       uses: Ilshidur/action-discord@master
       with:
-        args: 'Download versi terbaru di {{steps.S3.outputs.object_locations	}}'
+        args: 'Download versi terbaru di {{ steps.S3.outputs.object_locations }}'
