@@ -1,7 +1,10 @@
-name: Build App
+name: Manual Build
 on:
   workflow_dispatch:
     inputs:
+      branch:
+        description: branch to deploy
+        required: true
       os:
         type: choice
         description: OS to build on. Ubuntu is faster, MacOS supports iOS builds
@@ -24,6 +27,10 @@ on:
 jobs:
   build:
     runs-on: ${{ github.event.inputs.os }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
     strategy:
       matrix:
         node: [16.x]
