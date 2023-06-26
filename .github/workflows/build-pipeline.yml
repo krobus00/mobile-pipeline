@@ -36,35 +36,8 @@ jobs:
       with:
         ref: ${{ github.event.inputs.branch }}
 
-    - name: Setup Node
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node }}
-        cache: yarn
-
-    - name: Setup Expo and EAS
-      uses: expo/expo-github-action@v8
-      with:
-        eas-cache: true
-        token: ${{ secrets.EXPO_TOKEN }}
-        expo-version: latest
-        eas-version: latest
-
-    - name: Setup EAS local builds
-      run: yarn global add eas-cli-local-build-plugin
-
-    - name: Install dependencies
-      run: yarn
-
-    - name: Build APK
-      if: ${{github.event.inputs.platform == 'android'}}
-      run: |
-        current_time=$(date "+%Y.%m.%d-%H.%M.%S")
-        eas build --local \
-          --non-interactive \
-          --output=./build/$current_time.apk \
-          --platform=${{ github.event.inputs.platform }} \
-          --profile=${{ github.event.inputs.profile }}
+    - name: Sample
+      run: mkdir build && echo "aaa" > sample.apk
 
     - name: Upload to S3
       uses: shallwefootball/s3-upload-action@master
@@ -77,9 +50,12 @@ jobs:
         source_dir: 'build'
         destination_dir: 'mobile-builds'
 
-    - name: Discord notification
-      env:
-        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      uses: Ilshidur/action-discord@master
+    - name: Send Discord notification
+      uses: stegzilla/discord-notify@v2
       with:
-        args: 'Download versi terbaru di ${{steps.S3.outputs.object_locations}}'
+        webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+        title: New mobile app version
+        message: "**Creator:** ${{ github.event.pull_request.user.login }}\n${{ secrets.AWS_BUCKET }}.${{ secrets.AWS_ENDPOINT }}/${{steps.S3.outputs.object_key}}"
+        include_image: true
+        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        username: Mobile Deployment
