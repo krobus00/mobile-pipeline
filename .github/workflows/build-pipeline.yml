@@ -1,0 +1,91 @@
+name: Manual Build
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: branch to deploy
+        required: true
+      os:
+        type: choice
+        description: OS to build on. Ubuntu is faster, MacOS supports iOS builds
+        options:
+          - macos-latest
+          - ubuntu-latest
+      platform:
+        type: choice
+        description: Platform to build for
+        options:
+          - android
+          - ios
+      profile:
+        type: choice
+        description: Build profile to use
+        options:
+          - development
+          - preview
+          - production
+
+env:
+  fileName: ${{ github.run_id }} # Use the run ID as the default fileName
+
+jobs:
+  build:
+    runs-on: ${{ github.event.inputs.os }}
+    strategy:
+      matrix:
+        node: [16.x]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
+
+    - name: Setup Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node }}
+        cache: yarn
+
+    - name: Setup Expo and EAS
+      uses: expo/expo-github-action@v8
+      with:
+        eas-cache: true
+        token: ${{ secrets.EXPO_TOKEN }}
+        expo-version: latest
+        eas-version: latest
+
+    - name: Setup EAS local builds
+      run: yarn global add eas-cli-local-build-plugin
+
+    - name: Install dependencies
+      run: yarn
+
+    - name: Build APK
+      if: ${{github.event.inputs.platform == 'android'}}
+      run: |
+        eas build --local \
+          --non-interactive \
+          --output=./build/${{ env.fileName }}.apk \
+          --platform=${{ github.event.inputs.platform }} \
+          --profile=${{ github.event.inputs.profile }}
+
+    - name: Upload to S3
+      uses: shallwefootball/s3-upload-action@master
+      id: S3
+      with:
+        aws_key_id: ${{ secrets.AWS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+        aws_bucket: ${{ secrets.AWS_BUCKET }}
+        endpoint: ${{ secrets.AWS_ENDPOINT }}
+        source_dir: 'build'
+        destination_dir: 'mobile-builds'
+
+    - name: Send Discord notification
+      uses: stegzilla/discord-notify@v2
+      with:
+        webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+        title: New mobile app version
+        message: "**Creator:** ${{ github.actor }}\n**Download link:** ${{ secrets.S3_URL }}/mobile-builds/${{ env.fileName }}.apk"
+        include_image: true
+        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        username: Mobile Deployment
