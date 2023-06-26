@@ -37,7 +37,7 @@ jobs:
         ref: ${{ github.event.inputs.branch }}
 
     - name: Sample
-      run: mkdir build && echo "aaa" > sample.apk
+      run: mkdir build && echo "aaa" > build/sample.apk
 
     - name: Upload to S3
       uses: shallwefootball/s3-upload-action@master
