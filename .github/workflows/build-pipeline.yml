@@ -27,6 +27,8 @@ on:
 jobs:
   build:
     runs-on: ${{ github.event.inputs.os }}
+    env:
+      fileName: $(date "+%Y.%m.%d-%H.%M.%S")
     strategy:
       matrix:
         node: [16.x]
@@ -37,7 +39,7 @@ jobs:
         ref: ${{ github.event.inputs.branch }}
 
     - name: Sample
-      run: mkdir build && echo "aaa" > build/sample.apk
+      run: mkdir build && echo "aaa" > build/${{fileName}}.apk
 
     - name: Upload to S3
       uses: shallwefootball/s3-upload-action@master
@@ -55,7 +57,7 @@ jobs:
       with:
         webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
         title: New mobile app version
-        message: "**Creator:** ${{ github.event.pull_request.user.login }}\n${{steps.S3.outputs.object_locations}}"
+        message: "**Creator:** ${{ github.event.pull_request.user.login }}\n${{ secrets.AWS_BUCKET }}.${{ secrets.AWS_ENDPOINT }}/mobile-builds/${{ fileName }}.apk"
         include_image: true
         avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
         username: Mobile Deployment
