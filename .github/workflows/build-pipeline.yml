@@ -55,11 +55,13 @@ jobs:
     - name: Install dependencies
       run: yarn
 
-    - name: Build app
+    - name: Build APK
+      if: ${{github.event.inputs.platform == 'android'}}
       run: |
+        current_time=$(date "+%Y.%m.%d-%H.%M.%S")
         eas build --local \
           --non-interactive \
-          --output=./app-build \
+          --output=./build/$current_time.apk \
           --platform=${{ github.event.inputs.platform }} \
           --profile=${{ github.event.inputs.profile }}
 
@@ -70,4 +72,4 @@ jobs:
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
         aws_bucket: ${{ secrets.AWS_BUCKET }}
         endpoint: ${{ secrets.AWS_ENDPOINT }}
-        source_dir: 'app-build'
+        source_dir: 'build'
